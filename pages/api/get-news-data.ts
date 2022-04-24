@@ -2,6 +2,10 @@ import type {NextApiRequest, NextApiResponse} from 'next'
 import {parse} from 'node-html-parser'
 import axios from 'axios'
 
+require('es6-promise').polyfill()
+const originalFetch = require('isomorphic-fetch')
+const fetch = require('fetch-retry')(originalFetch)
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const instance = axios.create({
     baseURL: 'https://apnews.com',
@@ -13,7 +17,6 @@ export default async function handler(
     res: NextApiResponse
 ) {
     try {
-
         const fetchData: string = await instance.get('/').then(e => e.data).catch()
         const document = parse(fetchData)
         const links = await Promise.all(
@@ -26,11 +29,11 @@ export default async function handler(
         const result: string[] = []
         for (const link of setToArr) {
             if (link.indexOf('/article/') !== -1 && !(link.indexOf('https://') !== -1)) {
-                // console.log(link)
+                console.log(link)
                 const domain = 'https://apnews.com'
                 const originalUrl = `${domain}${link}`
 
-                const fetchData: string = await fetch(`https://apnews.com${link}`).then(e => e.text()).catch()
+                const fetchData: string = await fetch(`https://apnews.com${link}`).then((e: { text: () => any; }) => e.text()).catch()
                 const document = parse(fetchData)
                 // 画像
                 let imageOriginSrc = document.querySelector('meta[data-rh="true"][property="twitter:image"]')
@@ -49,45 +52,30 @@ export default async function handler(
                     'title': title,
                     'body': textBody.join('\n')
                 })
-
-                const requestOptions: RequestInit = {
+                let result = await fetch(`${process.env.TRANSLATE_URL}`, {
+                    retries: 3,
+                    retryDelay: 1000,
                     method: 'POST',
                     headers: myHeaders,
                     body: raw,
                     redirect: 'follow'
-                }
+                })
+                    .then((response: { json: () => any; }) => response.json())
+                    .catch((error: any) => console.log('error', error))
 
-                let result = await fetch(`${process.env.TRANSLATE_URL}`, requestOptions)
-                    .then(response => response.json())
-                    .catch(error => console.log('error', error))
                 sendBody.push({
                     'title': result['title'],
-                    'body': result['body'],
+                    'body': result['body'].replaceAll(/^\n/gm, ''),
                     'imageSrc': imageSrc,
                     'originalUrl': originalUrl
                 })
-                await fetch(`https://${process.env.SERVICE_DOMAIN}.microcms.io/api/v1/news`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-MICROCMS-API-KEY': `${process.env.X_MICROCMS_API_KEY}`
-                    },
-                    body: JSON.stringify(sendBody[0])
-                })
-
-                return res.status(200).send(sendBody[0]['body'])
             }
         }
-
-
-        return res.status(200).send(result.flat().toString())
-        // return res.status(200).send("result.flat().toString()")
-        // Regenerate our index route showing the images
-        // await res.unstable_revalidate('/')
-        // return res.json({revalidated: true})
+        return res.status(200)
     } catch (err) {
         // If there was an error, Next.js will continue
         // to show the last successfully generated page
         return res.status(500).send('Error revalidating')
     }
 }
+
