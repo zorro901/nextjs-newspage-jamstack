@@ -69,6 +69,14 @@ export default async function handler(
                     'imageSrc': imageSrc,
                     'originalUrl': originalUrl
                 })
+                await fetch(`https://${process.env.SERVICE_DOMAIN}.microcms.io/api/v1/news`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-MICROCMS-API-KEY': `${process.env.X_MICROCMS_API_KEY}`
+                    },
+                    body: JSON.stringify(sendBody[0])
+                })
             }
         }
         return res.status(200)
