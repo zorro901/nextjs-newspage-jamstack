@@ -55,15 +55,15 @@ export default async function handler(
                         body: raw,
                     }
                 )
-                res.status(200)
                 res.end('ok')
             }
         }
-        return res.status(200)
+        res.status(200)
+        res.end('ok')
     } catch (err) {
         // If there was an error, Next.js will continue
         // to show the last successfully generated page
-        return res.status(500).send('Error revalidating')
+        res.status(500).send('Error revalidating')
     }
 }
 
