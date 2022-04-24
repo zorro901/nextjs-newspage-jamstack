@@ -29,7 +29,6 @@ export default async function handler(
         const result: string[] = []
         for (const link of setToArr) {
             if (link.indexOf('/article/') !== -1 && !(link.indexOf('https://') !== -1)) {
-                console.log(link)
                 const domain = 'https://apnews.com'
                 const originalUrl = `${domain}${link}`
 
@@ -40,43 +39,24 @@ export default async function handler(
                 const imageSrc = imageOriginSrc?.rawAttributes.content.replace('3000.jpeg', '400.jpeg')
 
                 // 本文
-                const sendBody = []
                 const textBody: string[] = []
                 Array.from(document.querySelectorAll('[data-key="article"] p'), async v => textBody.push(v.textContent))
                 let title = document.querySelector('[data-key="card-headline"] h1')?.textContent, RequestInit
 
-                const myHeaders = new Headers()
-                myHeaders.append('Content-Type', 'application/json')
-
                 const raw = JSON.stringify({
                     'title': title,
-                    'body': textBody.join('\n')
-                })
-                let result = await fetch(`${process.env.TRANSLATE_URL}`, {
-                    retries: 3,
-                    retryDelay: 1000,
-                    method: 'POST',
-                    headers: myHeaders,
-                    body: raw,
-                    redirect: 'follow'
-                })
-                    .then((response: { json: () => any; }) => response.json())
-                    .catch((error: any) => console.log('error', error))
-
-                sendBody.push({
-                    'title': result['title'],
-                    'body': result['body'].replaceAll(/^\n/gm, ''),
+                    'body': textBody.join('\n'),
                     'imageSrc': imageSrc,
                     'originalUrl': originalUrl
                 })
-                await fetch(`https://${process.env.SERVICE_DOMAIN}.microcms.io/api/v1/news`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-MICROCMS-API-KEY': `${process.env.X_MICROCMS_API_KEY}`
-                    },
-                    body: JSON.stringify(sendBody[0])
-                })
+                await fetch('http://localhost:3000/api/post-translate',
+                    {
+                        method: 'POST',
+                        body: raw,
+                    }
+                )
+                res.status(200)
+                res.end('ok')
             }
         }
         return res.status(200)
