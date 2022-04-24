@@ -55,7 +55,6 @@ export default async function handler(
                         body: raw,
                     }
                 )
-                res.end('ok')
             }
         }
         res.status(200)
