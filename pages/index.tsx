@@ -27,13 +27,13 @@ export const getStaticProps = async () => {
   const data = await client.get({
     endpoint: 'news', queries: {
       offset: 0,
-      limit: 100
+      limit: 50
     }
   })
   return {
     props: {
       news: data.contents
     },
-    revalidate: 60
+    revalidate: 30
   }
 }
