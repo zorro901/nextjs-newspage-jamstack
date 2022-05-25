@@ -19,7 +19,6 @@ export default function NewsId({news}: any) {
             <Image src={`${news.imageSrc}`}
                    width={300}
                    height={300}
-                   alt={"aaa"}
             />
 
             {/*<p>`NewsID : ${news.id}`</p>*/}
