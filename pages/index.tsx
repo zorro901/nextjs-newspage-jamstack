@@ -10,7 +10,6 @@ export default function Home({news}: any) {
       {/*       height={300}*/}
       {/*       alt={"aaa"}*/}
       {/*/>*/}
-
       <ul>
         {news.map((data: any) =>
           <li key={data.id}>
@@ -27,7 +26,7 @@ export const getStaticProps = async () => {
   const data = await client.get({
     endpoint: 'news', queries: {
       offset: 0,
-      limit: 50
+      limit: 45
     }
   })
   return {
