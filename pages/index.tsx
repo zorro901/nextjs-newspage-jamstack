@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { client } from '../libs/client'
-import Image from 'next/image'
 
 export default function Home({news}: any) {
   return (

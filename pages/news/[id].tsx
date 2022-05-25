@@ -1,5 +1,4 @@
 import { client } from '../../libs/client'
-import Image from 'next/image'
 
 export default function NewsId({news}: any) {
   const ondemandRevalidate = async () => {
@@ -17,13 +16,13 @@ export default function NewsId({news}: any) {
           __html: `${news.body}`
         }}
       />
-      <Image src={`${news.imageSrc}`}
+      <img src={`${news.imageSrc}`}
              // layout="fill"
              height={300}
              width={500}
-             objectFit="cover"
+             // objectFit="cover"
              alt={'image'}
-             quality={70}
+             // quality={70}
       />
       {/*<p>`NewsID : ${news.id}`</p>*/}
       {/*<button onClick={ondemandRevalidate}>オンデマンドISR</button>*/}
